@@ -43,16 +43,19 @@ getValueById(){
 			$1 == "value" && id == "'${id}'" { print $2 }'
 }
 
+getZonefile(){
+	curl -s ${API_URL}records?zone_id=${DNS_ID} -H 'Auth-API-Token: '${api_token}
+}
+
+echo "fetch dns zonefile..."
+zonefile="$(getZonefile)"
+
 while true; do
 	echo "check current ip from ${IP_SERVICE}..."
 	ext_ip="$(curl -sL ${IP_SERVICE})"
-	echo "detect external ip: ${ext_ip}"
+	echo "detect external ip: ${ext_ip}"	
 
-	echo "fetch dns zonefile..."
-	zonefile="$(curl -s ${API_URL}records?zone_id=${DNS_ID} -H 'Auth-API-Token: '${api_token})"
-
-
-	if [ ! -z "${ext_ip}" ]; then
+	if [ -n "${ext_ip}" ]; then
 		echo $RECORDS | tr "," "\n" | while read host; do
 			echo "check record ${host}..."
 			record_ids=`getIdByName "${host}" "${zonefile}"`
@@ -68,7 +71,9 @@ while true; do
 						"type": "A",
 						"name": "'${host}'",
 						"zone_id": "'$DNS_ID'"
-					}'
+					}';
+				echo "fetch dns zonefile..."
+				zonefile="$(getZonefile)"
 			else
 				for id in ${record_ids}; do
 					dns_ip=`getValueById "${id}" "${zonefile}"`
@@ -86,7 +91,9 @@ while true; do
 							"type": "A",
 							"name": "'${host}'",
 							"zone_id": "'$DNS_ID'"
-						}'
+						}';
+						echo "fetch dns zonefile..."
+						zonefile="$(getZonefile)"
 					fi;
 				done;
 			fi;

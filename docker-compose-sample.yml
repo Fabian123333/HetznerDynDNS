@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   app:
-    image: fabian1233/hetzner-dyndns
+    image: fabian1233/hetzner-dyndns:x64
     environment:
       INTERVAL: '60s'
 #      IP_SERVICE: 'xy'
