@@ -1,0 +1,23 @@
+version: '3.3'
+services:
+  app:
+    image: fabian1233/hetzner-dyndns
+    environment:
+      INTERVAL: '60s'
+#      IP_SERVICE: 'xy'
+#      DNS_ID: 'your zone id'
+      RECORDS: '@,www'
+
+    secrets:
+     - api-token
+    logging:
+      driver: json-file
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 4M
+
+secrets:
+  api-token:
+    file: ./secrets/api-token
