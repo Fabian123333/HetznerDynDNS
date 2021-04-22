@@ -44,16 +44,16 @@ getValueById(){
 }
 
 getZonefile(){
-	curl -s ${API_URL}records?zone_id=${DNS_ID} -H 'Auth-API-Token: '${api_token}
+	until curl -s ${API_URL}records?zone_id=${DNS_ID} -H 'Auth-API-Token: '${api_token}; do
+		echo "failed to reach the API, wait 30 seconds";
+		sleep 30;
+	done
 }
 
 echo "fetch dns zonefile..."
 zonefile="$(getZonefile)"
 
 while true; do
-	echo "fetch dns zonefile..."
-	zonefile="$(getZonefile)"
-
 	echo "check current ip from ${IP_SERVICE}..."
 	ext_ip="$(curl -sL ${IP_SERVICE})"
 	echo "detect external ip: ${ext_ip}"	
@@ -75,6 +75,10 @@ while true; do
 						"name": "'${host}'",
 						"zone_id": "'$DNS_ID'"
 					}';
+				echo "fetch dns zonefile..."
+				zonefile="$(getZonefile)"
+
+
 			else
 				for id in ${record_ids}; do
 					dns_ip=`getValueById "${id}" "${zonefile}"`
@@ -95,6 +99,8 @@ while true; do
 						}';
 					fi;
 				done;
+				echo "fetch dns zonefile..."
+				zonefile="$(getZonefile)"
 			fi;
 		done
 	fi;
