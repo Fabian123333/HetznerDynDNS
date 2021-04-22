@@ -4,6 +4,8 @@
 #RECORDS='@,www'
 #API_TOKEN="123456789abcdef"
 
+update_zonefile=true
+
 API_URL="https://dns.hetzner.com/api/v1/"
 
 if [ -z "${IP_SERVICE}" ]; then
@@ -50,14 +52,19 @@ getZonefile(){
 	done
 }
 
-echo "fetch dns zonefile..."
-zonefile="$(getZonefile)"
+zonefile=""
 
 while true; do
 	echo "check current ip from ${IP_SERVICE}..."
 	ext_ip="$(curl -sL ${IP_SERVICE})"
 	echo "detect external ip: ${ext_ip}"	
 
+	if [ $update_zonefile == "true" ]; then
+		update_zonefile=false;
+		echo "fetch dns zonefile...";
+		zonefile="$(getZonefile)";
+	fi;
+	
 	if [ -n "${ext_ip}" ]; then
 		echo $RECORDS | tr "," "\n" | while read host; do
 			echo "check record ${host}..."
@@ -75,10 +82,7 @@ while true; do
 						"name": "'${host}'",
 						"zone_id": "'$DNS_ID'"
 					}';
-				echo "fetch dns zonefile..."
-				zonefile="$(getZonefile)"
-
-
+				update_zonefile=true
 			else
 				for id in ${record_ids}; do
 					dns_ip=`getValueById "${id}" "${zonefile}"`
@@ -97,10 +101,9 @@ while true; do
 							"name": "'${host}'",
 							"zone_id": "'$DNS_ID'"
 						}';
+						update_zonefile=true
 					fi;
 				done;
-				echo "fetch dns zonefile..."
-				zonefile="$(getZonefile)"
 			fi;
 		done
 	fi;
